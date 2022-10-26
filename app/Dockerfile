@@ -1,7 +1,13 @@
-FROM node:alpine
+const http = require('http');
 
-COPY . /usr/src/app
+const server = http.createServer(function (req, res) {
+    res.writeHead(200, {
+        'Cache-Control': 'public, s-maxage=600',
+    });
+    res.write('<html><body><p>Hello world.</p></body></html>');
 
-WORKDIR /usr/src/app
+    res.end();
+});
 
-CMD ["node", "index.js"]
+console.log('Listening');
+server.listen(80);

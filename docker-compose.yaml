@@ -1,6 +1,14 @@
 version: "3"
 
 services:
+  test:
+    image: grafana/k6
+    volumes:
+      - $PWD/test:/home/k6
+    command: ["run", "--vus=100", "--duration=5s", "test.js"]
+    profiles:
+      - test
+
   caddy:
     image: caddy-reproducer:caddy
     build:
@@ -9,28 +17,27 @@ services:
     environment:
       - DEBUG=debug
       - CERTS=local_certs
+      - CACHE=conf.d/${CACHE:-none}.conf
     ports:
       - "80:80"
     volumes:
-      - $PWD/caddy/Caddyfile:/etc/caddy/Caddyfile
-  
+      - $PWD/caddy:/etc/caddy
+
   app:
     image: caddy-reproducer:app
     build:
       context: ./app
     volumes:
       - $PWD/app:/usr/src/app
-    networks:
-      default:
-        aliases:
-          - app
 
   olric:
     image: olricio/olricd
-    networks:
-      default:
-        aliases:
-          - olric
+
+  etcd:
+    image: docker.io/bitnami/etcd:3
+    environment:
+      - ALLOW_NONE_AUTHENTICATION=yes
+      - ETCD_ADVERTISE_CLIENT_URLS=http://etcd:2379
 
   etcd1:
     image: docker.io/bitnami/etcd:3
@@ -44,10 +51,6 @@ services:
       - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
       - ETCD_INITIAL_CLUSTER=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
       - ETCD_INITIAL_CLUSTER_STATE=new
-    networks:
-      default:
-        aliases:
-          - etcd1
 
   etcd2:
     image: docker.io/bitnami/etcd:3
@@ -61,10 +64,7 @@ services:
       - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
       - ETCD_INITIAL_CLUSTER=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
       - ETCD_INITIAL_CLUSTER_STATE=new
-    networks:
-      default:
-        aliases:
-          - etcd2
+
   etcd3:
     image: docker.io/bitnami/etcd:3
     environment:
@@ -77,10 +77,6 @@ services:
       - ETCD_INITIAL_CLUSTER_TOKEN=etcd-cluster
       - ETCD_INITIAL_CLUSTER=etcd1=http://etcd1:2380,etcd2=http://etcd2:2380,etcd3=http://etcd3:2380
       - ETCD_INITIAL_CLUSTER_STATE=new
-    networks:
-      default:
-        aliases:
-          - etcd3
-          
+
   redis:
     image: redis:6.2-alpine
