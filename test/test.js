@@ -4,6 +4,19 @@ import {
 } from 'k6';
 import http from 'k6/http';
 
+export const options = {
+  scenarios: {
+    rampup: {
+      executor: 'ramping-vus',
+      startVUs: 0,
+      stages: [{
+        duration: '20s',
+        target: 100
+      }, ],
+    },
+  },
+};
+
 export default function () {
   const res = http.get(`http://caddy/`);
   sleep(1)

@@ -5,7 +5,7 @@ services:
     image: grafana/k6
     volumes:
       - $PWD/test:/home/k6
-    command: ["run", "--vus=100", "--duration=5s", "test.js"]
+    command: ["run", "test.js"]
     profiles:
       - test
 
@@ -31,7 +31,7 @@ services:
       - $PWD/app:/usr/src/app
 
   olric:
-    image: olricio/olricd
+    image: olricio/olricd:v0.5.0-beta.8
 
   etcd:
     image: docker.io/bitnami/etcd:3
